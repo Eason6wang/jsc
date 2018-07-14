@@ -1,6 +1,7 @@
 from __future__ import division
 
-fvList = {"AAPL": [None,None], "BOND": [None,None], "GOOG": [None,None], "MSFT": [None,None], "BABA": [None,None], "BABZ": [None,None], "XLK": [None,None]}
+fvList = {"AAPL": [None,None,0,0,0.0002], "BOND": [None,None,0,0,0.0005], "GOOG": [None,None,0,0,0.0002], "MSFT": [None,None,0,0,0.0002], "BABA": [None,None,0,0,0.0005], "BABZ": [None,None,0,0,0.0002], "XLK": [None,None,0,0,0.0005]}
+
 
 def updateValues(data, symb):
     global fvList
@@ -27,7 +28,7 @@ def trade_fv(data):
     Returns a list of trades (buy/sell, symbol, price, size).
     """
     trades = []
-    if(data['type'] != 'book'):
+    if(data['type'] != 'book' or data['symbol'] == 'BOND'):
         return trades
     symb = data['symbol']
     fv = fvList[symb]
@@ -36,16 +37,20 @@ def trade_fv(data):
     if(fv[0] == None or fv[1] == None):
         return trades
 
-    fv = fvList[symb]
-    fv = sum(fv)/2
-    diff = fv / 200
+    fv_s = fvList[symb]
+    fv = (fv_s[0]+fv_s[1])/2
+    diff = fv * fv_s[4] #0.0001
 
     for entry in data['buy']:
-        if(int(entry[0]) > fv + diff):
-            trades.append(['SELL', symb, entry[0], entry[1]])
+        if fv_s[3] - fv_s[2] < 5:
+            if(int(entry[0]) > fv + diff):
+                trades.append(['SELL', symb, entry[0], entry[1]])
+                fv_s[3] += int(entry[1])
     for entry in data['sell']:
-        if(int(entry[0]) < fv - diff):
-            trades.append(['BUY', symb, entry[0], entry[1]])
+        if fv_s[2] - fv_s[3] < 5:
+            if(int(entry[0]) < fv - diff):
+                trades.append(['BUY', symb, entry[0], entry[1]])
+                fv_s[2] += int(entry[1])
     #print(fvList)
     return trades
 
