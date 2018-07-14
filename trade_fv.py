@@ -1,6 +1,6 @@
 from __future__ import division
 
-fvList = {"AAPL": [None,None,0,0,0.0002], "BOND": [None,None,0,0,0.0005], "GOOG": [None,None,0,0,0.0002], "MSFT": [None,None,0,0,0.0002], "BABA": [None,None,0,0,0.0005], "BABZ": [None,None,0,0,0.0002], "XLK": [None,None,0,0,0.0005]}
+fvList = {"AAPL": [None,None,0,0,0.0002], "BOND": [None,None,0,0,0.0005], "GOOG": [None,None,0,0,0.0002], "MSFT": [None,None,0,0,0.0002], "BABA": [None,None,0,0,0.0005], "BABZ": [None,None,0,0,0.0002], "XLK": [None,None,0,0,0.0006]}
 
 
 def updateValues(data, symb):
@@ -42,12 +42,12 @@ def trade_fv(data):
     diff = fv * fv_s[4] #0.0001
 
     for entry in data['buy']:
-        if fv_s[3] - fv_s[2] < 5:
+        if fv_s[3] - fv_s[2] < 12:
             if(int(entry[0]) > fv + diff):
                 trades.append(['SELL', symb, entry[0], entry[1]])
                 fv_s[3] += int(entry[1])
     for entry in data['sell']:
-        if fv_s[2] - fv_s[3] < 5:
+        if fv_s[2] - fv_s[3] < 12:
             if(int(entry[0]) < fv - diff):
                 trades.append(['BUY', symb, entry[0], entry[1]])
                 fv_s[2] += int(entry[1])

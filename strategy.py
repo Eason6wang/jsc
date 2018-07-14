@@ -9,7 +9,7 @@ def trade_bond(data):
         trades = []
         for batch in sell:
             output = {}
-            if BOUGHT_BOND - SOLD_BOND < 5:
+            if BOUGHT_BOND - SOLD_BOND < 20:
                 if int(batch[0]) < 1000:
                     output = ['BUY', 'BOND', int(batch[0]), int(batch[1])]
                     trades.append(output)
@@ -17,7 +17,7 @@ def trade_bond(data):
                     BOUGHT_BOND += int(batch[1])
         for batch in buy:
             output = {}
-            if SOLD_BOND - BOUGHT_BOND < 5:
+            if SOLD_BOND - BOUGHT_BOND < 20:
                 if int(batch[0]) > 1000:
                     output = ['SELL', 'BOND', int(batch[0]), int(batch[1])]
                     trades.append(output)
