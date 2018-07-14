@@ -16,7 +16,7 @@ import json
 team_name="THREEZEROZEROTWO"
 # This variable dictates whether or not the bot is connecting to the prod
 # or test exchange. Be careful with this switch!
-test_mode = False
+test_mode = True
 
 # This setting changes which test exchange is connected to.
 # 0 is prod-like
@@ -69,8 +69,8 @@ def main():
     write_to_exchange(exchange, {"type": "hello", "team": team_name.upper()})
     hello_from_exchange = read_from_exchange(exchange)
     print(hello_from_exchange)
-    #strategies = [trade_bond,trade_fv]
-    strategies = [trade_bond]
+    strategies = [trade_fv]
+    strategies += [trade_bond]
 
     data = read_from_exchange(exchange)
     while data:
