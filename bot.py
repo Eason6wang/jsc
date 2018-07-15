@@ -16,7 +16,7 @@ import json
 team_name="THREEZEROZEROTWO"
 # This variable dictates whether or not the bot is connecting to the prod
 # or test exchange. Be careful with this switch!
-test_mode = False
+test_mode = True
 print(test_mode)
 
 # This setting changes which test exchange is connected to.
@@ -65,6 +65,16 @@ def trade_batch(exchange, trades):
 from strategy import trade_bond
 from trade_fv import trade_fv
 
+#[buy, sell]
+actual_dict = {"AAPL": 0, 
+                "BOND": 0, 
+                "GOOG": 0, 
+                "MSFT": 0, 
+                "BABA": 0, 
+                "BABZ": 0, 
+                "XLK": 0}
+
+
 def main():
     exchange = connect()
     write_to_exchange(exchange, {"type": "hello", "team": team_name.upper()})
@@ -82,6 +92,12 @@ def main():
         if data['type'] != 'book': 
             data = read_from_exchange(exchange)
             continue
+        if data['type'] == 'fill':
+            if data['dir'] == 'BUY':
+                actual_dict[data['symbol']] += data['size']
+            else: 
+                actual_dict[data['symbol']] -= data['size']
+        
         trades = []
         for strategy in strategies:
             #pdb.set_trace()
