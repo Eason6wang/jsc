@@ -1,56 +1,64 @@
-from __future__ import division
 
-fvList = {"AAPL": [None,None,0,0,0.0002], "BOND": [None,None,0,0,0.0005], "GOOG": [None,None,0,0,0.0002], "MSFT": [None,None,0,0,0.0002], "BABA": [None,None,0,0,0.0005], "BABZ": [None,None,0,0,0.0002], "XLK": [None,None,0,0,0.0006]}
+#mean_buy, mean_sell, bought_size, sold_size, threshold
+dic = {"AAPL": [0,0,0,0,0.0002], 
+       "BOND": [0,0,0,0,0.0005], 
+       "GOOG": [0,0,0,0,0.0002], 
+       "MSFT": [0,0,0,0,0.0002], 
+       "BABA": [0,0,0,0,0.0005], 
+       "BABZ": [0,0,0,0,0.0002], 
+       "XLK": [0,0,0,0,0.0005]}
+NUMBER_THRES = 10
 
-
-def updateValues(data, symb):
-    global fvList
-    buys = data['buy']
-    sells = data['sell']
-
-    if(len(buys) > 0):
-        mean_buy = sum([int(price) for price, size in buys]) / len(buys)
-        if(fvList[symb][0] == None):
-            fvList[symb][0] = mean_buy
+def change_params(data, s):
+    global dic
+    buy = data['buy']
+    sell = data['sell']
+    param = dic[s]
+    if len(buy) > 0:
+        total_buy = 0
+        total_size = 0
+        for price, size in buy:
+            total_buy += int(price)
+            total_size += size
+        mean_buy = total_buy / len(buy)
+        if param[0] == 0:
+            param[0] = mean_buy
         else:
-            fvList[symb][0] = (fvList[symb][0] + mean_buy)/2
-    if(len(sells) > 0):
-        mean_sell = sum([int(price) for price, size in sells])/ len(sells)
-        if(fvList[symb][1] == None):
-            fvList[symb][1] = mean_sell
+            param[0] = (param[0] + mean_buy) / 2
+    if len(sell) > 0:
+        total_sell = 0
+        total_size = 0
+        for price, size in sell:
+            total_sell += int(price)
+            total_size += size
+        mean_sell = total_sell / len(sell)
+        if param[1] == 0:
+            param[1] = mean_sell
         else:
-            fvList[symb][1] = (fvList[symb][1] + mean_sell)/2
+            param[1] = (param[1] + mean_sell)/2
 
 
 def trade_fv(data):
-    global fvList
-    """Given the data in the book, decides whether we should make a trade.
-    Returns a list of trades (buy/sell, symbol, price, size).
-    """
+    global dic
     trades = []
     if(data['type'] != 'book' or data['symbol'] == 'BOND'):
         return trades
-    symb = data['symbol']
-    fv = fvList[symb]
-
-    updateValues(data, symb)
-    if(fv[0] == None or fv[1] == None):
+    s = data['symbol']
+    change_params(data, s)
+    params = dic[s]
+    if params[0] == 0 or params[1] == 0:
         return trades
-
-    fv_s = fvList[symb]
-    fv = (fv_s[0]+fv_s[1])/2
-    diff = fv * fv_s[4] #0.0001
-
-    for entry in data['buy']:
-        if fv_s[3] - fv_s[2] < 12:
-            if(int(entry[0]) > fv + diff):
-                trades.append(['SELL', symb, entry[0], entry[1]])
-                fv_s[3] += int(entry[1])
-    for entry in data['sell']:
-        if fv_s[2] - fv_s[3] < 12:
-            if(int(entry[0]) < fv - diff):
-                trades.append(['BUY', symb, entry[0], entry[1]])
-                fv_s[2] += int(entry[1])
-    #print(fvList)
+    fv = (params[0]+params[1])/2
+    thres = fv * params[4]
+    for buy in data['buy']:
+        if params[3] - params[2] < NUMBER_THRES:
+            if(int(buy[0]) > fv + thres):
+                trades.append(['SELL', s, buy[0], buy[1]])
+                params[3] += int(buy[1])
+    for sell in data['sell']:
+        if params[2] - params[3] < NUMBER_THRES:
+            if(int(sell[0]) < fv - thres):
+                trades.append(['BUY', s, sell[0], sell[1]])
+                params[2] += int(sell[1])
     return trades
 
